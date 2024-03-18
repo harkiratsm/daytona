@@ -52,18 +52,6 @@ func projectRender(projectInfo *serverapiclient.ProjectInfo, project *serverapic
 	extensionsTable := ""
 	repoBranch := ""
 
-	if !*projectInfo.IsRunning && *projectInfo.Created == "" {
-		projectState = projectStatusStyle.Foreground(lipgloss.Color(colors[0][4])).Render("Unavailable")
-	} else if !*projectInfo.IsRunning {
-		projectState = projectStatusStyle.Render("Stopped")
-	} else {
-		projectState = projectStatusStyle.Foreground(lipgloss.Color(colors[4][4])).Render("Running")
-
-		extensionsTable = table.New().
-			Border(lipgloss.HiddenBorder()).
-			Rows(extensions...).Render()
-	}
-
 	if project.Repository.Branch == nil {
 		repoBranch = ""
 	} else {
@@ -73,7 +61,24 @@ func projectRender(projectInfo *serverapiclient.ProjectInfo, project *serverapic
 	repoView := "Url" + (repositoryURLStyle.Render(*project.Repository.Url)) + "\n" + repoBranch
 	repoView = "Repository" + viewStyle.Render(repoView)
 
-	projectView := "Project" + projectNameStyle.Render(*projectInfo.Name) + "\n" + "State  " + projectState + extensionsTable
+	projectView := "Project" + projectNameStyle.Render(*project.Name)  + "\n"
+
+	if projectInfo != nil {
+		if !*projectInfo.IsRunning && *projectInfo.Created == "" {
+			projectState = projectStatusStyle.Foreground(lipgloss.Color(colors[0][4])).Render("Unavailable")
+		} else if !*projectInfo.IsRunning {
+			projectState = projectStatusStyle.Render("Stopped")
+		} else {
+			projectState = projectStatusStyle.Foreground(lipgloss.Color(colors[4][4])).Render("Running")
+	
+			extensionsTable = table.New().
+				Border(lipgloss.HiddenBorder()).
+				Rows(extensions...).Render()
+		}
+
+		projectView += "Status" + projectState + "\n" + extensionsTable
+
+	}
 
 	return viewStyle.Render(projectView) + viewStyle.Render(repoView)
 }
@@ -85,7 +90,7 @@ func Render(workspace *serverapiclient.Workspace) {
 
 	var output string
 	output = "\n"
-	output += "Workspace" + workspaceNameStyle.Render(*workspace.Info.Name) + "\n"
+	output += "Workspace" + workspaceNameStyle.Render(*workspace.Name) + "\n"
 	output += "ID" + workspaceNameStyle.Render(*workspace.Id) + "\n"
 	output += "Target" + workspaceNameStyle.Render(*workspace.Target) + "\n"
 
@@ -94,12 +99,17 @@ func Render(workspace *serverapiclient.Workspace) {
 	}
 
 	for _, project := range workspace.Projects {
-		for _, projectInfo := range workspace.Info.Projects {
-			if *projectInfo.Name == *project.Name {
-				output += projectRender(&projectInfo, &project)
-				break
+		if workspace.Info != nil && len(workspace.Info.Projects) > 0 {	
+			for _, projectInfo := range workspace.Info.Projects {
+				if *projectInfo.Name == *project.Name {
+					output += projectRender(&projectInfo, &project)
+					break
+				}
 			}
+		} else {
+			output += projectRender(nil, &project)
 		}
+		
 	}
 
 	output = lipgloss.NewStyle().PaddingLeft(3).Render(output)

@@ -12,11 +12,16 @@ import (
 	"github.com/daytonaio/daytona/internal/util/apiclient/server"
 	"github.com/daytonaio/daytona/pkg/cmd/output"
 	"github.com/daytonaio/daytona/pkg/serverapiclient"
+	"github.com/daytonaio/daytona/pkg/types"
 	"github.com/daytonaio/daytona/pkg/views/workspace/info"
 	"github.com/daytonaio/daytona/pkg/views/workspace/selection"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+var infoOptions struct {
+	verbose bool
+}
 
 var InfoCmd = &cobra.Command{
 	Use:     "info",
@@ -46,7 +51,7 @@ var InfoCmd = &cobra.Command{
 
 			workspace = selection.GetWorkspaceFromPrompt(workspaceList, "view")
 		} else {
-			workspace, err = server.GetWorkspace(args[0])
+			workspace, err = server.GetWorkspace(args[0], types.WorkspaceInfoOptions{Verbose: infoOptions.verbose})
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -73,6 +78,7 @@ var InfoCmd = &cobra.Command{
 }
 
 func init() {
+	InfoCmd.Flags().BoolVarP(&infoOptions.verbose, "verbose", "v", false, "Show verbose output")
 	if !util.WorkspaceMode() {
 		InfoCmd.Use += " [WORKSPACE]"
 		InfoCmd.Args = cobra.RangeArgs(0, 1)

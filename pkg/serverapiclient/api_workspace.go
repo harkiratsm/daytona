@@ -16,9 +16,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
-)
 
+	"github.com/daytonaio/daytona/pkg/types"
+)
 
 // WorkspaceAPIService WorkspaceAPI service
 type WorkspaceAPIService service
@@ -138,6 +140,7 @@ type ApiGetWorkspaceRequest struct {
 	ctx context.Context
 	ApiService *WorkspaceAPIService
 	workspaceId string
+	opts types.WorkspaceInfoOptions
 }
 
 func (r ApiGetWorkspaceRequest) Execute() (*Workspace, *http.Response, error) {
@@ -153,11 +156,12 @@ Get workspace info
  @param workspaceId Workspace ID or Name
  @return ApiGetWorkspaceRequest
 */
-func (a *WorkspaceAPIService) GetWorkspace(ctx context.Context, workspaceId string) ApiGetWorkspaceRequest {
+func (a *WorkspaceAPIService) GetWorkspace(ctx context.Context, workspaceId string, opts ...types.WorkspaceInfoOptions) ApiGetWorkspaceRequest {
 	return ApiGetWorkspaceRequest{
 		ApiService: a,
 		ctx: ctx,
 		workspaceId: workspaceId,
+		opts: opts[0],
 	}
 }
 
@@ -190,6 +194,10 @@ func (a *WorkspaceAPIService) GetWorkspaceExecute(r ApiGetWorkspaceRequest) (*Wo
 	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
 	if localVarHTTPContentType != "" {
 		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	if r.opts.Verbose  {
+		localVarQueryParams.Set("verbose", strconv.FormatBool(r.opts.Verbose))
 	}
 
 	// to determine the Accept header

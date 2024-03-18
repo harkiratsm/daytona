@@ -109,15 +109,20 @@ func GetTargetList() ([]serverapiclient.ProviderTarget, error) {
 	return targets, nil
 }
 
-func GetWorkspace(workspaceNameOrId string) (*serverapiclient.Workspace, error) {
+func GetWorkspace(workspaceNameOrId string, opts ...types.WorkspaceInfoOptions ) (*serverapiclient.Workspace, error) {
 	ctx := context.Background()
 
 	apiClient, err := GetApiClient(nil)
+
+	var workspaceOpts types.WorkspaceInfoOptions
+    if len(opts) > 0 {
+        workspaceOpts = opts[0]
+    }
 	if err != nil {
 		return nil, err
 	}
 
-	workspace, res, err := apiClient.WorkspaceAPI.GetWorkspace(ctx, workspaceNameOrId).Execute()
+	workspace, res, err := apiClient.WorkspaceAPI.GetWorkspace(ctx, workspaceNameOrId, workspaceOpts).Execute()
 	if err != nil {
 		return nil, apiclient.HandleErrorResponse(res, err)
 	}

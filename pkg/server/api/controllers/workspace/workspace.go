@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/daytonaio/daytona/pkg/server/api/controllers/workspace/dto"
 	"github.com/daytonaio/daytona/pkg/server/db"
@@ -26,6 +27,8 @@ import (
 //	@id				GetWorkspace
 func GetWorkspace(ctx *gin.Context) {
 	workspaceId := ctx.Param("workspaceId")
+	verbose := ctx.Query("verbose")
+
 
 	w, err := db.FindWorkspaceByIdOrName(workspaceId)
 	if err != nil {
@@ -35,11 +38,23 @@ func GetWorkspace(ctx *gin.Context) {
 
 	log.Debug(w)
 
-	workspaceInfo, err := provisioner.GetWorkspaceInfo(w)
-	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to get workspace info: %s", err.Error()))
-		return
-	}
+	var workspaceInfo *types.WorkspaceInfo
+
+	if verbose != "" {
+        isVerbose, err := strconv.ParseBool(verbose)
+        if err != nil {
+            ctx.AbortWithError(http.StatusBadRequest, errors.New("invalid value for verbose flag"))
+            return
+        }
+
+        if isVerbose {
+            workspaceInfo, err = provisioner.GetWorkspaceInfo(w)
+            if err != nil {
+                ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to get workspace info: %s", err.Error()))
+                return
+            }
+        }
+    }
 
 	response := dto.Workspace{
 		Workspace: *w,

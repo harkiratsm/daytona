@@ -50,3 +50,7 @@ type WorkspaceInfo struct {
 	Projects         []*ProjectInfo `json:"projects"`
 	ProviderMetadata string         `json:"providerMetadata,omitempty"`
 } // @name WorkspaceInfo
+
+type WorkspaceInfoOptions struct {
+	Verbose bool
+} // @name WorkspaceInfoOptions
